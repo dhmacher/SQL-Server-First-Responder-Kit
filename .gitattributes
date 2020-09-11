@@ -1,5 +1,5 @@
 # Force this repository to use Windows line endings
-* text=crlf
+* text=auto
 
 # Custom for Visual Studio
 *.ascx text
@@ -61,3 +61,8 @@ BlitzBuilder/ export-ignore
 sp_AskBrent/ export-ignore
 sp_Blitz/ export-ignore
 sp_BlitzIndex/ export-ignore
+
+# linguist overrides
+*.sql linguist-language=TSQL
+*.R linguist-language=R
+*.ps1 linguist-language=Powershell

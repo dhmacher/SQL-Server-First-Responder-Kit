@@ -20,16 +20,22 @@ ALTER PROCEDURE dbo.sp_AllNightLog
 								@Restore BIT = 0,
 								@Debug BIT = 0,
 								@Help BIT = 0,
-								@VersionDate DATETIME = NULL OUTPUT
+								@Version                 VARCHAR(30) = NULL OUTPUT,
+								@VersionDate             DATETIME = NULL OUTPUT,
+								@VersionCheckMode        BIT = 0
 WITH RECOMPILE
 AS
 SET NOCOUNT ON;
 
 BEGIN;
 
-DECLARE @Version VARCHAR(30);
-SET @Version = '2.10';
-SET @VersionDate = '20181001';
+
+SELECT @Version = '3.97', @VersionDate = '20200808';
+
+IF(@VersionCheckMode = 1)
+BEGIN
+	RETURN;
+END;
 
 IF @Help = 1
 
@@ -76,7 +82,7 @@ BEGIN
 	
 	    MIT License
 		
-		Copyright (c) 2018 Brent Ozar Unlimited
+		Copyright (c) 2020 Brent Ozar Unlimited
 	
 		Permission is hereby granted, free of charge, to any person obtaining a copy
 		of this software and associated documentation files (the "Software"), to deal
@@ -553,6 +559,7 @@ DiskPollster:
 						SELECT fl.BackupFile
 						FROM @FileList AS fl
 						WHERE fl.BackupFile IS NOT NULL
+						AND fl.BackupFile NOT IN (SELECT name from sys.databases where database_id < 5)
 						AND NOT EXISTS
 							(
 							SELECT 1
@@ -797,6 +804,7 @@ LogShamer:
 												AND bw.is_completed = 1
 												AND bw.last_log_backup_start_time < DATEADD(SECOND, (@rpo * -1), GETDATE()) 
                                                 AND (bw.error_number IS NULL OR bw.error_number > 0) /* negative numbers indicate human attention required */
+												AND bw.ignore_database = 0
 											  )
 										OR    
 											  (		/*This section picks up newly added databases by Pollster*/
@@ -805,6 +813,7 @@ LogShamer:
 											  	AND bw.last_log_backup_start_time = '1900-01-01 00:00:00.000'
 											  	AND bw.last_log_backup_finish_time = '9999-12-31 00:00:00.000'
                                                 AND (bw.error_number IS NULL OR bw.error_number > 0) /* negative numbers indicate human attention required */
+												AND bw.ignore_database = 0
 											  )
 										ORDER BY bw.last_log_backup_start_time ASC, bw.last_log_backup_finish_time ASC, bw.database_name ASC;
 	
